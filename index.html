@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>图片生成</title>
+  <style>
+    .image-cover {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <div>
+      <span>宽度</span>
+      <input id="image-width" type="number" style="width:60px" placeholder="宽度">
+      <span>高度</span>
+      <input id="image-height" type="number" style="width:60px" placeholder="高度">
+      <span>文字颜色</span>
+      <input id="text-color" type="color" style="width:60px" placeholder="文字颜色">
+      <span>背景颜色</span>
+      <input id="image-color" type="color" style="width:60px" placeholder="背景颜色">
+      <span>名称：</span>
+      <input id="image-name" placeholder="请输入图片名称" type="text" style="width: 200px;">
+      <button onclick="handleGenerate()">生成图片</button>
+      <button onclick="handleDownload()">下载图片</button>
+    </div>
+    <div class="image-cover"></div>
+  </div>
+  <script>
+    let imageWidth = 400;
+    let imageHeight = 200;
+    document.querySelector("#image-width").value = `${imageWidth}`;
+    document.querySelector("#image-height").value = `${imageHeight}`;
+    document.querySelector("#text-color").value = '#ffffff';
+    document.querySelector("#image-color").value = '#000000';
+
+    function generateImage(width, height) {
+      // 创建canvas元素
+      var canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+
+      // 获取canvas上下文
+      var ctx = canvas.getContext('2d');
+
+      // 绘制背景
+      ctx.fillStyle = document.querySelector("#image-color").value;
+      ctx.fillRect(0, 0, width, height);
+
+      // 绘制文字
+      ctx.fillStyle = document.querySelector("#text-color").value;
+      ctx.font = '20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText(width + ' x ' + height, width / 2, height / 2);
+
+      var imgName = `${width}-${height}-${+new Date()}.png`;
+
+      // 将canvas转换为图片
+      var dataURL = canvas.toDataURL('image/png');
+
+      // 创建图片元素
+      var img = document.createElement('img');
+      img.id = 'generated-image'
+      img.src = dataURL;
+
+      // 返回图片元素
+      return {
+        img: img,
+        imgName: imgName
+      };
+    }
+
+    function downloadImage(url) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.responseType = 'blob';
+      xhr.onload = function(e) {
+        if (this.status == 200) {
+          var blob = new Blob([this.response], {type: 'image/png'});
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = document.querySelector("#image-name").value;
+          document.body.appendChild(a);
+          a.click();
+        }
+      };
+      xhr.send();
+    }
+
+    function handleGenerate() {
+      imageWidth = document.querySelector("#image-width").value;
+      imageHeight = document.querySelector("#image-height").value;
+      const { img, imgName } = generateImage(imageWidth, imageHeight);
+      document.querySelector(".image-cover").innerHTML = '';
+      document.querySelector("#image-name").value = imgName;
+      document.querySelector(".image-cover").appendChild(img);
+    }
+    handleGenerate()
+
+    function handleDownload() {
+      downloadImage(document.querySelector("#generated-image").src)
+    }
+  </script>
+</body>
+</html>
